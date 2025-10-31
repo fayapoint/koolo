@@ -335,19 +335,23 @@ func ensureEnemyIsInRange(monster data.Monster, state *attackState, maxDistance,
 	}
 
 	// Handle repositioning if needed (due to no damage, or no LoS for burst attacks)
-	if needsRepositioning {
+	// EXCEPTION: Mosaic Assassin builds charges without doing damage, then releases with finishers
+	// Skip damage timeout for Mosaic to allow charge-building phase
+	isMosaic := ctx.CharacterCfg.Character.Class == "mosaic"
+	
+	if needsRepositioning && !isMosaic {
 		// If we've already tried repositioning once for this "stuck" phase
-		if state.repositionAttempts >= 1 { // This is the problematic part. User wants to allow 1 attempt.
+		if state.repositionAttempts >= 1 {
 			ctx.Logger.Info(fmt.Sprintf(
-				"Already attempted repositioning for monster [%d] in area [%s]. Skipping further attempts and considering monster unkillable.", // Updated log message
+				"Already attempted repositioning for monster [%d] in area [%s]. Skipping further attempts and considering monster unkillable.",
 				monster.Name, ctx.Data.PlayerUnit.Area.Area().Name,
 			))
-			return ErrMonsterUnreachable // <-- CHANGE: Return specific error
+			return ErrMonsterUnreachable
 		}
 
 		// Check if enough time has passed since the last reposition attempt (cooldown)
 		if time.Since(state.lastRepositionTime) < repositionCooldown {
-			return nil // Still on cooldown, do not reposition yet. Return nil to continue attacking.
+			return nil // Still on cooldown, do not reposition yet
 		}
 
 		ctx.Logger.Info(fmt.Sprintf(

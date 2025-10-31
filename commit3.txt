@@ -1,0 +1,18 @@
+fix: Resolve Baal portal buff timing issue for Mosaic
+
+Fixed the buff sequence that was canceling Worldstone Chamber entry:
+
+BEFORE:
+- Buff before portal → Animation playing
+- Try to interact with portal → CANCELLED
+- Bot stands still, never enters
+
+AFTER:
+- Mosaic: Skip pre-portal buff (preserves charges)
+- Enter portal successfully
+- Buff INSIDE chamber (safe timing)
+- Fight Baal with full charges
+
+Other classes: Buff before portal + 500ms delay for animations
+
+This ensures Mosaic always enters the chamber successfully!
