@@ -130,7 +130,17 @@ func (s *Baal) Run() error {
 	_, isLevelingChar := s.ctx.Char.(context.LevelingCharacter)
 	if s.ctx.CharacterCfg.Game.Baal.KillBaal || isLevelingChar {
 		utils.Sleep(15000)
-		action.Buff()
+		
+		// Check if Mosaic - they should already have charges, skip pre-portal buff
+		isMosaic := s.ctx.CharacterCfg.Character.Class == "mosaic"
+		
+		if !isMosaic {
+			// Non-Mosaic characters: buff before entering portal
+			action.Buff()
+			utils.Sleep(500) // Small delay to let buff animations complete
+		} else {
+			s.ctx.Logger.Info("Mosaic detected: Skipping pre-portal buff to preserve charges and prevent portal interaction issues")
+		}
 		
 		// Move to a position closer to the portal to ensure we can interact with it
 		if err = action.MoveToCoords(data.Position{X: 15095, Y: 5029}); err != nil {
@@ -154,8 +164,9 @@ func (s *Baal) Run() error {
 		s.ctx.Logger.Info("Entered Worldstone Chamber, moving to Baal's position")
 		_ = action.MoveToCoords(data.Position{X: 15136, Y: 5943})
 		
-		// Buff one more time before Baal fight to ensure charges are ready
+		// Buff AFTER entering chamber - now it's safe and won't interrupt anything
 		action.Buff()
+		s.ctx.Logger.Info("Buffed inside Worldstone Chamber, ready for Baal fight")
 
 		if err := s.ctx.Char.KillBaal(); err != nil {
 			return err

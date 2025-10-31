@@ -1,0 +1,14 @@
+fix: Add NeverTownDuringBosses option to prevent charge loss
+
+Critical fix for Mosaic Assassin boss fights:
+- Never go to town for potions/merc during boss fights
+- Preserves charges during Baal, Diablo, Chaos Sanctuary
+- Skips buff cancellation issues
+- Bot stays in fight with current resources
+
+Boss areas protected:
+- Worldstone Chamber (Baal fight)
+- Throne of Destruction (Baal waves)
+- Chaos Sanctuary (Diablo)
+
+This ensures Mosaic never loses charges mid-boss fight!
