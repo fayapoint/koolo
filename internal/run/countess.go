@@ -29,19 +29,63 @@ func (c Countess) Run() error {
 		return err
 	}
 
-	areas := []area.ID{
-		area.ForgottenTower,
-		area.TowerCellarLevel1,
-		area.TowerCellarLevel2,
-		area.TowerCellarLevel3,
-		area.TowerCellarLevel4,
-		area.TowerCellarLevel5,
+	// Set filter based on elite focus setting
+	filter := data.MonsterAnyFilter()
+	if c.ctx.CharacterCfg.Game.Countess.FocusOnElitePacks {
+		filter = data.MonsterEliteFilter()
 	}
 
-	for _, a := range areas {
-		err = action.MoveToArea(a)
+	// Define areas with their corresponding clear settings
+	areaConfigs := []struct {
+		id         area.ID
+		shouldClear bool
+	}{
+		{area.ForgottenTower, c.ctx.CharacterCfg.Game.Countess.ClearForgottenTower},
+		{area.TowerCellarLevel1, c.ctx.CharacterCfg.Game.Countess.ClearTowerCellar1},
+		{area.TowerCellarLevel2, c.ctx.CharacterCfg.Game.Countess.ClearTowerCellar2},
+		{area.TowerCellarLevel3, c.ctx.CharacterCfg.Game.Countess.ClearTowerCellar3},
+		{area.TowerCellarLevel4, c.ctx.CharacterCfg.Game.Countess.ClearTowerCellar4},
+		{area.TowerCellarLevel5, c.ctx.CharacterCfg.Game.Countess.ClearTowerCellar5},
+	}
+
+	// Process each area based on configuration
+	for i, areaConfig := range areaConfigs {
+		// Always move to the area (needed for progression)
+		err = action.MoveToArea(areaConfig.id)
 		if err != nil {
 			return err
+		}
+
+		// Clear area if configured
+		if areaConfig.shouldClear || c.ctx.CharacterCfg.Game.Countess.ClearFloors {
+			if c.ctx.CharacterCfg.Game.Countess.ClearOnlyPath {
+				// Get the next area's destination for clearing path
+				var destPos data.Position
+				if i < len(areaConfigs)-1 {
+					// Get next area entrance position from adjacent levels
+					nextAreaID := areaConfigs[i+1].id
+					for _, lvl := range c.ctx.Data.AdjacentLevels {
+						if lvl.Area == nextAreaID {
+							destPos = lvl.Position
+							break
+						}
+					}
+				} else {
+					// Last level - use Countess position
+					areaData := c.ctx.Data.Areas[area.TowerCellarLevel5]
+					countessNPC, found := areaData.NPCs.FindOne(740)
+					if found {
+						destPos = countessNPC.Positions[0]
+					}
+				}
+				// Clear only path to next area with proper destination
+				if destPos.X != 0 || destPos.Y != 0 {
+					action.ClearThroughPath(destPos, 15, filter)
+				}
+			} else {
+				// Clear entire area
+				action.ClearCurrentLevel(false, filter)
+			}
 		}
 	}
 
@@ -59,5 +103,11 @@ func (c Countess) Run() error {
 	}
 
 	// Kill Countess
-	return c.ctx.Char.KillCountess()
+	err = c.ctx.Char.KillCountess()
+	if err != nil {
+		return err
+	}
+
+	// Display items with ALT if configured
+	return action.DisplayItemsWithAlt()
 }

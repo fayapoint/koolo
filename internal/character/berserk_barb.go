@@ -29,7 +29,7 @@ const (
 	maxAttackAttempts = 20
 )
 
-func (s Berserker) ShouldIgnoreMonster(m data.Monster) bool {
+func (s *Berserker) ShouldIgnoreMonster(m data.Monster) bool {
 	return false
 }
 

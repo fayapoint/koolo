@@ -666,7 +666,7 @@ func (a Leveling) RockyWaste() error {
 	// Use action.MoveToArea to navigate to Rocky Waste, similar to the Izual quest.
 	err := action.MoveToArea(area.RockyWaste)
 	if err != nil {
-		a.ctx.Logger.Error("Failed to move to Rocky Waste area: %v", err)
+		a.ctx.Logger.Error("Failed to move to Rocky Waste area", "error", err)
 		return err // Return the error if navigation fails
 	}
 	a.ctx.Logger.Info("Successfully reached Rocky Waste.")
@@ -674,7 +674,7 @@ func (a Leveling) RockyWaste() error {
 	// Attempt to clear the current level (Rocky Waste).
 	err = action.ClearCurrentLevel(false, data.MonsterAnyFilter())
 	if err != nil {
-		a.ctx.Logger.Error("Failed to clear Rocky Waste area: %v", err)
+		a.ctx.Logger.Error("Failed to clear Rocky Waste area", "error", err)
 		return err // Return the error if clearing fails
 	}
 	a.ctx.Logger.Info("Successfully cleared Rocky Waste area.")

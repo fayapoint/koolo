@@ -8,9 +8,7 @@ import (
 	"github.com/hectorgimenez/d2go/pkg/data/area"
 	"github.com/hectorgimenez/d2go/pkg/data/npc"
 	"github.com/hectorgimenez/d2go/pkg/data/object"
-	"github.com/hectorgimenez/d2go/pkg/data/skill"
 	"github.com/hectorgimenez/koolo/internal/action"
-	"github.com/hectorgimenez/koolo/internal/action/step"
 	"github.com/hectorgimenez/koolo/internal/config"
 	"github.com/hectorgimenez/koolo/internal/context"
 	"github.com/hectorgimenez/koolo/internal/utils"
@@ -133,8 +131,19 @@ func (s *Baal) Run() error {
 	if s.ctx.CharacterCfg.Game.Baal.KillBaal || isLevelingChar {
 		utils.Sleep(15000)
 		action.Buff()
+		
+		// Move to a position closer to the portal to ensure we can interact with it
+		if err = action.MoveToCoords(data.Position{X: 15095, Y: 5029}); err != nil {
+			s.ctx.Logger.Warn("Failed to move closer to portal, attempting interaction anyway", "error", err)
+		}
+		
 		// Exception: Baal portal has no destination in memory
-		baalPortal, _ := s.ctx.Data.Objects.FindOne(object.BaalsPortal)
+		baalPortal, found := s.ctx.Data.Objects.FindOne(object.BaalsPortal)
+		if !found {
+			return errors.New("baal portal not found")
+		}
+		
+		s.ctx.Logger.Info("Entering Worldstone Chamber through Baal's portal")
 		err = action.InteractObject(baalPortal, func() bool {
 			return s.ctx.Data.PlayerUnit.Area == area.TheWorldstoneChamber
 		})
@@ -142,12 +151,22 @@ func (s *Baal) Run() error {
 			return err
 		}
 
+		s.ctx.Logger.Info("Entered Worldstone Chamber, moving to Baal's position")
 		_ = action.MoveToCoords(data.Position{X: 15136, Y: 5943})
+		
+		// Buff one more time before Baal fight to ensure charges are ready
+		action.Buff()
 
-		return s.ctx.Char.KillBaal()
+		if err := s.ctx.Char.KillBaal(); err != nil {
+			return err
+		}
+
+		// Display items with ALT if configured
+		return action.DisplayItemsWithAlt()
 	}
 
-	return nil
+	// Display items with ALT if configured
+	return action.DisplayItemsWithAlt()
 }
 
 func (s Baal) checkForSoulsOrDolls() bool {
@@ -167,106 +186,4 @@ func (s Baal) checkForSoulsOrDolls() bool {
 	}
 
 	return false
-}
-
-func (s *Baal) preAttackBaalWaves() {
-	// Positions adapted from kolbot baal.js preattack
-	blizzPos := data.Position{X: 15094, Y: 5027}
-	hammerPos := data.Position{X: 15094, Y: 5029}
-	throneCenter := data.Position{X: 15093, Y: 5029}
-	forwardPos := data.Position{X: 15116, Y: 5026}
-
-	// Simple global cooldown between preattacks to avoid spam
-	const preAtkCooldown = 1500 * time.Millisecond
-	if !s.preAtkLast.IsZero() && time.Since(s.preAtkLast) < preAtkCooldown {
-		return
-	}
-
-	if s.ctx.Data.PlayerUnit.Skills[skill.Blizzard].Level > 0 {
-		step.CastAtPosition(skill.Blizzard, true, blizzPos)
-		s.preAtkLast = time.Now()
-		return
-	}
-
-	if s.ctx.Data.PlayerUnit.Skills[skill.Meteor].Level > 0 {
-		step.CastAtPosition(skill.Meteor, true, blizzPos)
-		s.preAtkLast = time.Now()
-		return
-	}
-	if s.ctx.Data.PlayerUnit.Skills[skill.FrozenOrb].Level > 0 {
-		step.CastAtPosition(skill.FrozenOrb, true, blizzPos)
-		s.preAtkLast = time.Now()
-		return
-	}
-
-	if s.ctx.Data.PlayerUnit.Skills[skill.BlessedHammer].Level > 0 {
-		if kb, found := s.ctx.Data.KeyBindings.KeyBindingForSkill(skill.Concentration); found {
-			s.ctx.HID.PressKeyBinding(kb)
-		}
-		step.CastAtPosition(skill.BlessedHammer, true, hammerPos)
-		s.preAtkLast = time.Now()
-		return
-	}
-
-	if s.ctx.Data.PlayerUnit.Skills[skill.Decoy].Level > 0 {
-		const decoyCooldown = 10 * time.Second
-		if s.decoyLast.IsZero() || time.Since(s.decoyLast) > decoyCooldown {
-			decoyPos := data.Position{X: 15092, Y: 5028}
-			step.CastAtPosition(skill.Decoy, false, decoyPos)
-			s.decoyLast = time.Now()
-			s.preAtkLast = time.Now()
-			return
-		}
-	}
-
-	if s.ctx.Data.PlayerUnit.Skills[skill.PoisonNova].Level > 0 {
-		step.CastAtPosition(skill.PoisonNova, true, s.ctx.Data.PlayerUnit.Position)
-		s.preAtkLast = time.Now()
-		return
-	}
-	if s.ctx.Data.PlayerUnit.Skills[skill.DimVision].Level > 0 {
-		step.CastAtPosition(skill.DimVision, true, blizzPos)
-		s.preAtkLast = time.Now()
-		return
-	}
-
-	// Druid:
-	if s.ctx.Data.PlayerUnit.Skills[skill.Tornado].Level > 0 {
-		step.CastAtPosition(skill.Tornado, true, throneCenter)
-		s.preAtkLast = time.Now()
-		return
-	}
-	if s.ctx.Data.PlayerUnit.Skills[skill.Fissure].Level > 0 {
-		step.CastAtPosition(skill.Fissure, true, forwardPos)
-		s.preAtkLast = time.Now()
-		return
-	}
-	if s.ctx.Data.PlayerUnit.Skills[skill.Volcano].Level > 0 {
-		step.CastAtPosition(skill.Volcano, true, forwardPos)
-		s.preAtkLast = time.Now()
-		return
-	}
-
-	// Assassin:
-	if s.ctx.Data.PlayerUnit.Skills[skill.LightningSentry].Level > 0 {
-		for i := 0; i < 3; i++ {
-			step.CastAtPosition(skill.LightningSentry, true, throneCenter)
-			utils.Sleep(80)
-		}
-		s.preAtkLast = time.Now()
-		return
-	}
-	if s.ctx.Data.PlayerUnit.Skills[skill.DeathSentry].Level > 0 {
-		for i := 0; i < 2; i++ {
-			step.CastAtPosition(skill.DeathSentry, true, throneCenter)
-			utils.Sleep(80)
-		}
-		s.preAtkLast = time.Now()
-		return
-	}
-	if s.ctx.Data.PlayerUnit.Skills[skill.ShockWeb].Level > 0 {
-		step.CastAtPosition(skill.ShockWeb, true, throneCenter)
-		s.preAtkLast = time.Now()
-		return
-	}
 }

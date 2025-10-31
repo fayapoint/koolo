@@ -137,6 +137,56 @@
                             <input type="checkbox" name="mosaicUseFistsOfFire" {{ if .Config.Character.MosaicSin.UseFistsOfFire }}checked{{ end }}/>
                             Use Fists of Fire
                         </label>
+                        <label>
+                            <input type="checkbox" name="mosaicUseDragonFlight" {{ if .Config.Character.MosaicSin.UseDragonFlight }}checked{{ end }}/>
+                            Use Dragon Flight (Teleport Finisher)
+                        </label>
+                        <label>
+                            <input type="checkbox" name="mosaicUseDragonTalon" {{ if .Config.Character.MosaicSin.UseDragonTalon }}checked{{ end }}/>
+                            Use Dragon Talon (Melee Finisher)
+                        </label>
+                        <label>
+                            <input type="checkbox" name="mosaicUseMindBlast" {{ if .Config.Character.MosaicSin.UseMindBlast }}checked{{ end }}/>
+                            Use Mind Blast (Charge Refresh)
+                        </label>
+                        <label>
+                            <input type="checkbox" name="mosaicUseChargeBattery" {{ if .Config.Character.MosaicSin.UseChargeBattery }}checked{{ end }}/>
+                            🔋 Use Charge Battery Strategy (Requires Mind Blast)
+                        </label>
+                        <label>
+                            <input type="checkbox" name="mosaicAggressiveMode" {{ if .Config.Character.MosaicSin.AggressiveMode }}checked{{ end }}/>
+                            Aggressive Mode (Don't wait for merc/shadow)
+                        </label>
+                        <label>
+                            <input type="checkbox" name="mosaicTwoPassDiabloRun" {{ if .Config.Character.MosaicSin.TwoPassDiabloRun }}checked{{ end }}/>
+                            Two-Pass Diablo Run (Preserves Charges)
+                        </label>
+                        <label>
+                            Phoenix Strike Charges:
+                            <select name="mosaicPhoenixChargeCount">
+                                <option value="1" {{ if eq .Config.Character.MosaicSin.PhoenixChargeCount 1 }}selected{{ end }}>1 (Chaos Ice Bolt)</option>
+                                <option value="2" {{ if or (eq .Config.Character.MosaicSin.PhoenixChargeCount 0) (eq .Config.Character.MosaicSin.PhoenixChargeCount 2) }}selected{{ end }}>2 (Chaos Lightning - Default)</option>
+                                <option value="3" {{ if eq .Config.Character.MosaicSin.PhoenixChargeCount 3 }}selected{{ end }}>3 (Meteor)</option>
+                            </select>
+                        </label>
+                        <label>
+                            Charge Refresh Time (seconds):
+                            <select name="mosaicChargeRefreshTime">
+                                <option value="10" {{ if eq .Config.Character.MosaicSin.ChargeRefreshTime 10 }}selected{{ end }}>10</option>
+                                <option value="11" {{ if eq .Config.Character.MosaicSin.ChargeRefreshTime 11 }}selected{{ end }}>11</option>
+                                <option value="12" {{ if or (eq .Config.Character.MosaicSin.ChargeRefreshTime 0) (eq .Config.Character.MosaicSin.ChargeRefreshTime 12) }}selected{{ end }}>12 (Default)</option>
+                                <option value="13" {{ if eq .Config.Character.MosaicSin.ChargeRefreshTime 13 }}selected{{ end }}>13</option>
+                            </select>
+                        </label>
+                        <label>
+                            Charge Battery Duration (seconds):
+                            <select name="mosaicChargeBatteryDuration">
+                                <option value="20" {{ if eq .Config.Character.MosaicSin.ChargeBatteryDuration 20 }}selected{{ end }}>20</option>
+                                <option value="30" {{ if or (eq .Config.Character.MosaicSin.ChargeBatteryDuration 0) (eq .Config.Character.MosaicSin.ChargeBatteryDuration 30) }}selected{{ end }}>30 (Default)</option>
+                                <option value="40" {{ if eq .Config.Character.MosaicSin.ChargeBatteryDuration 40 }}selected{{ end }}>40</option>
+                                <option value="50" {{ if eq .Config.Character.MosaicSin.ChargeBatteryDuration 50 }}selected{{ end }}>50</option>
+                            </select>
+                        </label>
                     </fieldset>
                 </div>
             </div>
@@ -165,14 +215,103 @@
                         Identify with Cain
                     </label>
                     <label>
-                        <input type="checkbox" name="interactWithShrines" {{ if .Config.Game.InteractWithShrines }}checked{{ end }}/>
+                        <input type="checkbox" name="interactWithShrines" id="interactWithShrines" {{ if .Config.Game.InteractWithShrines }}checked{{ end }}/>
                         Interact with shrines
                     </label>
                 </fieldset>
+                
+                <!-- Shrine Configuration Section -->
+                <div id="shrineConfigSection" {{ if not .Config.Game.InteractWithShrines }}style="display: none;"{{ end }}>
+                    <h6>Shrine Settings</h6>
+                    <fieldset>
+                        <legend>Always Take (Utility Shrines)</legend>
+                        <label>
+                            <input type="checkbox" name="shrineRefill" {{ if or (not .Config.Game.ShrineSettings) (.Config.Game.ShrineSettings.RefillShrine) }}checked{{ end }}/>
+                            Refill Shrine (HP/Mana restore)
+                        </label>
+                        <label>
+                            <input type="checkbox" name="shrineHealth" {{ if or (not .Config.Game.ShrineSettings) (.Config.Game.ShrineSettings.HealthShrine) }}checked{{ end }}/>
+                            Health Shrine (HP restore)
+                        </label>
+                        <label>
+                            <input type="checkbox" name="shrineMana" {{ if or (not .Config.Game.ShrineSettings) (.Config.Game.ShrineSettings.ManaShrine) }}checked{{ end }}/>
+                            Mana Shrine (Mana restore)
+                        </label>
+                    </fieldset>
+                    
+                    <fieldset>
+                        <legend>Buff Shrines</legend>
+                        <label>
+                            <input type="checkbox" name="shrineExperience" {{ if or (not .Config.Game.ShrineSettings) (.Config.Game.ShrineSettings.ExperienceShrine) }}checked{{ end }}/>
+                            Experience Shrine (50% XP boost, 3 min)
+                        </label>
+                        <label>
+                            <input type="checkbox" name="shrineSkill" {{ if or (not .Config.Game.ShrineSettings) (.Config.Game.ShrineSettings.SkillShrine) }}checked{{ end }}/>
+                            Skill Shrine (+2 skills, 2 min)
+                        </label>
+                        <label>
+                            <input type="checkbox" name="shrineManaRegen" {{ if or (not .Config.Game.ShrineSettings) (.Config.Game.ShrineSettings.ManaRegenShrine) }}checked{{ end }}/>
+                            Mana Regen Shrine (faster mana regen)
+                        </label>
+                        <label>
+                            <input type="checkbox" name="shrineStamina" {{ if or (not .Config.Game.ShrineSettings) (.Config.Game.ShrineSettings.StaminaShrine) }}checked{{ end }}/>
+                            Stamina Shrine (no stamina drain)
+                        </label>
+                        <label>
+                            <input type="checkbox" name="shrineArmor" {{ if .Config.Game.ShrineSettings.ArmorShrine }}checked{{ end }}/>
+                            Armor Shrine (+armor)
+                        </label>
+                        <label>
+                            <input type="checkbox" name="shrineCombat" {{ if .Config.Game.ShrineSettings.CombatShrine }}checked{{ end }}/>
+                            Combat Shrine (+combat skills)
+                        </label>
+                    </fieldset>
+                    
+                    <fieldset>
+                        <legend>Resistance Shrines</legend>
+                        <label>
+                            <input type="checkbox" name="shrineResistFire" {{ if .Config.Game.ShrineSettings.ResistFireShrine }}checked{{ end }}/>
+                            Fire Resistance Shrine
+                        </label>
+                        <label>
+                            <input type="checkbox" name="shrineResistCold" {{ if .Config.Game.ShrineSettings.ResistColdShrine }}checked{{ end }}/>
+                            Cold Resistance Shrine
+                        </label>
+                        <label>
+                            <input type="checkbox" name="shrineResistLightning" {{ if .Config.Game.ShrineSettings.ResistLightningShrine }}checked{{ end }}/>
+                            Lightning Resistance Shrine
+                        </label>
+                        <label>
+                            <input type="checkbox" name="shrineResistPoison" {{ if .Config.Game.ShrineSettings.ResistPoisonShrine }}checked{{ end }}/>
+                            Poison Resistance Shrine
+                        </label>
+                    </fieldset>
+                    
+                    <fieldset>
+                        <legend>Intelligent Buff Management</legend>
+                        <label>
+                            Min delay between shrines (seconds)
+                            <input type="number" name="shrineMinDelay" min="0" max="300" value="{{ if .Config.Game.ShrineSettings }}{{ .Config.Game.ShrineSettings.MinDelayBetweenShrines }}{{ else }}5{{ end }}"/>
+                        </label>
+                        <label>
+                            <input type="checkbox" name="shrinePreventOverwrite" {{ if or (not .Config.Game.ShrineSettings) (.Config.Game.ShrineSettings.PreventBuffOverwrite) }}checked{{ end }}/>
+                            Prevent overwriting better buffs
+                        </label>
+                        <label>
+                            <input type="checkbox" name="shrineAlwaysBreakCurses" {{ if or (not .Config.Game.ShrineSettings) (.Config.Game.ShrineSettings.AlwaysBreakCurses) }}checked{{ end }}/>
+                            Always use shrines to break curses
+                        </label>
+                    </fieldset>
+                </div>
+                
                 <fieldset class="grid">
                     <label>
                         <input type="checkbox" name="interactWithChests" {{ if .Config.Game.InteractWithChests }}checked{{ end }}/>
                         Interact with chests
+                    </label>
+                    <label>
+                        ALT Display Time (seconds, 0 = disabled)
+                        <input name="altDisplayTime" min="0" type="number" placeholder="{{ .Config.Game.AltDisplayTime }}" value="{{ .Config.Game.AltDisplayTime }}"/>
                     </label>
                 </fieldset>
                 <fieldset class="grid">
@@ -556,6 +695,15 @@
             </div>
             <script>
                 document.addEventListener('DOMContentLoaded', function () {
+                    // Shrine configuration toggle
+                    const shrineCheckbox = document.getElementById('interactWithShrines');
+                    const shrineConfigSection = document.getElementById('shrineConfigSection');
+                    if (shrineCheckbox && shrineConfigSection) {
+                        shrineCheckbox.addEventListener('change', function() {
+                            shrineConfigSection.style.display = this.checked ? 'block' : 'none';
+                        });
+                    }
+                    
                     // Store available mule profiles for dynamic dropdown creation
                     const availableMuleProfiles = [
                         {{ range $profile := $.AvailableProfiles }}

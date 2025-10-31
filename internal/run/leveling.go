@@ -135,10 +135,10 @@ func (a Leveling) AdjustGameDifficulty() error {
 	}
 
 	if difficultyChanged {
-		a.ctx.Logger.Info("Difficulty changed to %s. Saving character configuration...", a.ctx.CharacterCfg.Game.Difficulty)
+		a.ctx.Logger.Info("Difficulty changed", "difficulty", a.ctx.CharacterCfg.Game.Difficulty, "message", "Saving character configuration...")
 		// Use the new ConfigFolderName field here!
 		if err := config.SaveSupervisorConfig(a.ctx.CharacterCfg.ConfigFolderName, a.ctx.CharacterCfg); err != nil {
-			a.ctx.Logger.Error("Failed to save character configuration: %s", err.Error())
+			a.ctx.Logger.Error("Failed to save character configuration", "error", err.Error())
 			return fmt.Errorf("failed to save character configuration: %w", err)
 		}
 		return errors.New("res too low for hell")

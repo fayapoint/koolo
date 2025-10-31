@@ -346,6 +346,9 @@ func calculateBeltScore(itm data.Item) float64 {
 	return 0.0
 }
 
+// getBeltSize returns the number of potion slots for a belt item.
+// NOTE: This function is part of the belt management system and should NOT be removed
+// even if static analysis marks it as unused. It's used for belt size calculations.
 func getBeltSize(itm data.Item) int {
 	if size := beltSizes[itm.Desc().Code]; size > 0 {
 		return size
@@ -353,6 +356,9 @@ func getBeltSize(itm data.Item) int {
 	return BeltBaseSlots
 }
 
+// getCurrentBeltSize returns the current equipped belt's potion capacity.
+// NOTE: This function is part of the belt management system and should NOT be removed
+// even if static analysis marks it as unused. It's used for inventory management.
 func getCurrentBeltSize() int {
 	ctx := context.Get()
 	for _, item := range ctx.Data.Inventory.ByLocation(item.LocationEquipped) {

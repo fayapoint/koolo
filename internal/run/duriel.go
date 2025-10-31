@@ -225,7 +225,12 @@ func (d Duriel) Run() error {
 
 	utils.Sleep(700)
 
-	return d.ctx.Char.KillDuriel()
+	if err := d.ctx.Char.KillDuriel(); err != nil {
+		return err
+	}
+
+	// Display items with ALT if configured
+	return action.DisplayItemsWithAlt()
 }
 
 func (d Duriel) findRealTomb() (area.ID, error) {

@@ -1196,6 +1196,27 @@ func (s *HttpServer) characterSettings(w http.ResponseWriter, r *http.Request) {
 			cfg.Character.MosaicSin.UseClawsOfThunder = r.Form.Has("mosaicUseClawsOfThunder")
 			cfg.Character.MosaicSin.UseBladesOfIce = r.Form.Has("mosaicUseBladesOfIce")
 			cfg.Character.MosaicSin.UseFistsOfFire = r.Form.Has("mosaicUseFistsOfFire")
+			cfg.Character.MosaicSin.UseDragonFlight = r.Form.Has("mosaicUseDragonFlight")
+			cfg.Character.MosaicSin.UseDragonTalon = r.Form.Has("mosaicUseDragonTalon")
+			cfg.Character.MosaicSin.UseMindBlast = r.Form.Has("mosaicUseMindBlast")
+			cfg.Character.MosaicSin.UseChargeBattery = r.Form.Has("mosaicUseChargeBattery")
+			cfg.Character.MosaicSin.AggressiveMode = r.Form.Has("mosaicAggressiveMode")
+			cfg.Character.MosaicSin.TwoPassDiabloRun = r.Form.Has("mosaicTwoPassDiabloRun")
+			if phoenixCharges := r.Form.Get("mosaicPhoenixChargeCount"); phoenixCharges != "" {
+				if val, err := strconv.Atoi(phoenixCharges); err == nil && val >= 1 && val <= 3 {
+					cfg.Character.MosaicSin.PhoenixChargeCount = val
+				}
+			}
+			if chargeRefresh := r.Form.Get("mosaicChargeRefreshTime"); chargeRefresh != "" {
+				if val, err := strconv.Atoi(chargeRefresh); err == nil && val >= 8 && val <= 14 {
+					cfg.Character.MosaicSin.ChargeRefreshTime = val
+				}
+			}
+			if batteryDuration := r.Form.Get("mosaicChargeBatteryDuration"); batteryDuration != "" {
+				if val, err := strconv.Atoi(batteryDuration); err == nil && val >= 10 && val <= 60 {
+					cfg.Character.MosaicSin.ChargeBatteryDuration = val
+				}
+			}
 		}
 
 		// Blizzard Sorc specific options
@@ -1220,8 +1241,9 @@ func (s *HttpServer) characterSettings(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 
-		for x, value := range r.Form["inventoryBeltColumns[]"] {
-			cfg.Inventory.BeltColumns[x] = value
+		// Belt columns configuration
+		if beltCols := r.Form["inventoryBeltColumns[]"]; len(beltCols) > 0 {
+			copy(cfg.Inventory.BeltColumns[:], beltCols)
 		}
 
 		cfg.Inventory.HealingPotionCount, _ = strconv.Atoi(r.Form.Get("healingPotionCount"))
@@ -1229,13 +1251,31 @@ func (s *HttpServer) characterSettings(w http.ResponseWriter, r *http.Request) {
 		cfg.Inventory.RejuvPotionCount, _ = strconv.Atoi(r.Form.Get("rejuvPotionCount"))
 
 		// Game
-		cfg.Game.CreateLobbyGames = r.Form.Has("createLobbyGames")
+		cfg.Game.StopLevelingAt, _ = strconv.Atoi(r.Form.Get("stopLevelingAt"))
 		cfg.Game.MinGoldPickupThreshold, _ = strconv.Atoi(r.Form.Get("gameMinGoldPickupThreshold"))
+		cfg.Game.AltDisplayTime, _ = strconv.Atoi(r.Form.Get("altDisplayTime"))
 		cfg.UseCentralizedPickit = r.Form.Has("useCentralizedPickit")
 		cfg.Game.UseCainIdentify = r.Form.Has("useCainIdentify")
 		cfg.Game.InteractWithShrines = r.Form.Has("interactWithShrines")
+		
+		// Shrine Settings
+		cfg.Game.ShrineSettings.ExperienceShrine = r.Form.Has("shrineExperience")
+		cfg.Game.ShrineSettings.StaminaShrine = r.Form.Has("shrineStamina")
+		cfg.Game.ShrineSettings.ManaRegenShrine = r.Form.Has("shrineManaRegen")
+		cfg.Game.ShrineSettings.SkillShrine = r.Form.Has("shrineSkill")
+		cfg.Game.ShrineSettings.RefillShrine = r.Form.Has("shrineRefill")
+		cfg.Game.ShrineSettings.HealthShrine = r.Form.Has("shrineHealth")
+		cfg.Game.ShrineSettings.ManaShrine = r.Form.Has("shrineMana")
+		cfg.Game.ShrineSettings.ArmorShrine = r.Form.Has("shrineArmor")
+		cfg.Game.ShrineSettings.CombatShrine = r.Form.Has("shrineCombat")
+		cfg.Game.ShrineSettings.ResistLightningShrine = r.Form.Has("shrineResistLightning")
+		cfg.Game.ShrineSettings.ResistFireShrine = r.Form.Has("shrineResistFire")
+		cfg.Game.ShrineSettings.ResistColdShrine = r.Form.Has("shrineResistCold")
+		cfg.Game.ShrineSettings.ResistPoisonShrine = r.Form.Has("shrineResistPoison")
+		cfg.Game.ShrineSettings.MinDelayBetweenShrines, _ = strconv.Atoi(r.Form.Get("shrineMinDelay"))
+		cfg.Game.ShrineSettings.PreventBuffOverwrite = r.Form.Has("shrinePreventOverwrite")
+		cfg.Game.ShrineSettings.AlwaysBreakCurses = r.Form.Has("shrineAlwaysBreakCurses")
 		cfg.Game.InteractWithChests = r.Form.Has("interactWithChests")
-		cfg.Game.StopLevelingAt, _ = strconv.Atoi(r.Form.Get("stopLevelingAt"))
 		cfg.Game.IsNonLadderChar = r.Form.Has("isNonLadderChar")
 
 		// Packet Casting
@@ -1263,6 +1303,14 @@ func (s *HttpServer) characterSettings(w http.ResponseWriter, r *http.Request) {
 		cfg.Game.Andariel.UseAntidoes = r.Form.Has("gameAndarielUseAntidoes")
 
 		cfg.Game.Countess.ClearFloors = r.Form.Has("gameCountessClearFloors")
+		cfg.Game.Countess.ClearForgottenTower = r.Form.Has("gameCountessClearForgottenTower")
+		cfg.Game.Countess.ClearTowerCellar1 = r.Form.Has("gameCountessClearTowerCellar1")
+		cfg.Game.Countess.ClearTowerCellar2 = r.Form.Has("gameCountessClearTowerCellar2")
+		cfg.Game.Countess.ClearTowerCellar3 = r.Form.Has("gameCountessClearTowerCellar3")
+		cfg.Game.Countess.ClearTowerCellar4 = r.Form.Has("gameCountessClearTowerCellar4")
+		cfg.Game.Countess.ClearTowerCellar5 = r.Form.Has("gameCountessClearTowerCellar5")
+		cfg.Game.Countess.ClearOnlyPath = r.Form.Has("gameCountessClearOnlyPath")
+		cfg.Game.Countess.FocusOnElitePacks = r.Form.Has("gameCountessFocusOnElitePacks")
 
 		cfg.Game.Pindleskin.SkipOnImmunities = []stat.Resist{}
 		for _, i := range r.Form["gamePindleskinSkipOnImmunities[]"] {
@@ -1427,7 +1475,7 @@ func (s *HttpServer) characterSettings(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if cfg.Scheduler.Days == nil || len(cfg.Scheduler.Days) == 0 {
+	if len(cfg.Scheduler.Days) == 0 {
 		cfg.Scheduler.Days = make([]config.Day, 7)
 		for i := 0; i < 7; i++ {
 			cfg.Scheduler.Days[i] = config.Day{DayOfWeek: i}

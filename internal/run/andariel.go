@@ -270,5 +270,10 @@ func (a Andariel) Run() error {
 
 	a.ctx.EnableItemPickup()
 
-	return err
+	if err != nil {
+		return err
+	}
+
+	// Display items with ALT if configured
+	return action.DisplayItemsWithAlt()
 }

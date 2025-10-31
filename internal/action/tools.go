@@ -1,11 +1,16 @@
 package action
 
 import (
+	"fmt"
+	"log/slog"
+	"time"
+
 	"github.com/hectorgimenez/d2go/pkg/data"
 	"github.com/hectorgimenez/d2go/pkg/data/npc"
 	"github.com/hectorgimenez/koolo/internal/action/step"
 	"github.com/hectorgimenez/koolo/internal/context"
 	"github.com/hectorgimenez/koolo/internal/utils"
+	"github.com/lxn/win"
 )
 
 func OpenTPIfLeader() error {
@@ -74,5 +79,58 @@ func ClearMessages() error {
 	ctx := context.Get()
 	ctx.SetLastAction("ClearMessages")
 	ctx.HID.PressKey(ctx.Data.KeyBindings.ClearMessages.Key1[0])
+	return nil
+}
+
+func PressKeyForDuration(key string, durationSeconds int) error {
+	ctx := context.Get()
+	ctx.SetLastAction("PressKeyForDuration")
+
+	// Get the virtual key code from keyboard.go mappings
+	vkCode := ctx.HID.GetASCIICode(key)
+	if vkCode == 0 {
+		// Try to get from common key mappings
+		switch key {
+		case "alt":
+			vkCode = byte(win.VK_MENU)
+		case "ctrl":
+			vkCode = byte(win.VK_CONTROL)
+		case "shift":
+			vkCode = byte(win.VK_LSHIFT)
+		default:
+			return fmt.Errorf("unsupported key: %s", key)
+		}
+	}
+
+	// Use the HID methods directly
+	hwnd := ctx.HID.GetHWND()
+	lParamDown := ctx.HID.CalculateLParam(vkCode, true)
+	lParamUp := ctx.HID.CalculateLParam(vkCode, false)
+	
+	// Press the key down
+	win.PostMessage(hwnd, win.WM_KEYDOWN, uintptr(vkCode), lParamDown)
+	
+	// Wait for the specified duration
+	time.Sleep(time.Duration(durationSeconds) * time.Second)
+	
+	// Release the key
+	win.PostMessage(hwnd, win.WM_KEYUP, uintptr(vkCode), lParamUp)
+	
+	ctx.Logger.Debug("Pressed key for duration", slog.String("key", key), slog.Int("duration", durationSeconds))
+	
+	return nil
+}
+
+// DisplayItemsWithAlt displays items on the ground using ALT key for configured duration.
+// This function checks the AltDisplayTime configuration and only displays if > 0.
+func DisplayItemsWithAlt() error {
+	ctx := context.Get()
+	
+	if ctx.CharacterCfg.Game.AltDisplayTime > 0 {
+		ctx.Logger.Info("🎯 RUN COMPLETED - Displaying items with ALT (you can pause bot now if needed)", slog.Int("duration", ctx.CharacterCfg.Game.AltDisplayTime))
+		return PressKeyForDuration("alt", ctx.CharacterCfg.Game.AltDisplayTime)
+	}
+	
+	ctx.Logger.Info("🎯 RUN COMPLETED - No ALT display configured")
 	return nil
 }

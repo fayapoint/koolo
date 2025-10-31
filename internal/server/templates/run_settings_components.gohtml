@@ -23,6 +23,18 @@
 {{ define "countess" }}
     <fieldset>
         <label><input type="checkbox" name="gameCountessClearFloors" {{ if .Config.Game.Countess.ClearFloors }}checked{{ end }}> Clear all floors of Forgotten Tower </label>
+        <label><input type="checkbox" name="gameCountessClearOnlyPath" {{ if .Config.Game.Countess.ClearOnlyPath }}checked{{ end }}> Clear only path to next floor</label>
+        <label><input type="checkbox" name="gameCountessFocusOnElitePacks" {{ if .Config.Game.Countess.FocusOnElitePacks }}checked{{ end }}> Focus on elite packs</label>
+        
+        <label>Individual Floor Clearing:</label>
+        <fieldset class="grid">
+            <label><input type="checkbox" name="gameCountessClearForgottenTower" {{ if .Config.Game.Countess.ClearForgottenTower }}checked{{ end }}> Forgotten Tower</label>
+            <label><input type="checkbox" name="gameCountessClearTowerCellar1" {{ if .Config.Game.Countess.ClearTowerCellar1 }}checked{{ end }}> Tower Cellar Level 1</label>
+            <label><input type="checkbox" name="gameCountessClearTowerCellar2" {{ if .Config.Game.Countess.ClearTowerCellar2 }}checked{{ end }}> Tower Cellar Level 2</label>
+            <label><input type="checkbox" name="gameCountessClearTowerCellar3" {{ if .Config.Game.Countess.ClearTowerCellar3 }}checked{{ end }}> Tower Cellar Level 3</label>
+            <label><input type="checkbox" name="gameCountessClearTowerCellar4" {{ if .Config.Game.Countess.ClearTowerCellar4 }}checked{{ end }}> Tower Cellar Level 4</label>
+            <label><input type="checkbox" name="gameCountessClearTowerCellar5" {{ if .Config.Game.Countess.ClearTowerCellar5 }}checked{{ end }}> Tower Cellar Level 5</label>
+        </fieldset>
     </fieldset>
 {{ end }}
 

@@ -719,6 +719,9 @@ func findClosestShrine(maxScanDistance float64) *data.Object {
 	return nil
 }
 
+// interactWithShrine handles the shrine interaction process with retry logic.
+// NOTE: This function is part of the shrine interaction system and should NOT be removed
+// even if static analysis marks it as unused. It's called by the movement system.
 func interactWithShrine(shrine *data.Object) error {
 	ctx := context.Get()
 	ctx.Logger.Debug(fmt.Sprintf("Shrine [%s] found. Interacting with it...", shrine.Desc().Name))

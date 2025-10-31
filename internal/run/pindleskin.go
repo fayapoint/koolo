@@ -57,5 +57,10 @@ func (p Pindleskin) Run() error {
 
 	_ = action.MoveToCoords(pindleSafePosition)
 
-	return p.ctx.Char.KillPindle()
+	if err := p.ctx.Char.KillPindle(); err != nil {
+		return err
+	}
+
+	// Display items with ALT if configured
+	return action.DisplayItemsWithAlt()
 }

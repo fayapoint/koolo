@@ -103,8 +103,10 @@ func (m Mephisto) Run() error {
 	}
 
 	if m.ctx.CharacterCfg.Game.Mephisto.OpenChests || m.ctx.CharacterCfg.Game.Mephisto.KillCouncilMembers {
-
-		return action.ClearCurrentLevel(m.ctx.CharacterCfg.Game.Mephisto.OpenChests, m.CouncilMemberFilter())
+		if err := action.ClearCurrentLevel(m.ctx.CharacterCfg.Game.Mephisto.OpenChests, m.CouncilMemberFilter()); err != nil {
+			return err
+		}
+		return action.DisplayItemsWithAlt()
 	}
 
 	if m.ctx.CharacterCfg.Game.Mephisto.ExitToA4 {
@@ -149,7 +151,8 @@ func (m Mephisto) Run() error {
 		}
 	}
 
-	return nil
+	// Display items with ALT if configured
+	return action.DisplayItemsWithAlt()
 }
 
 func (m Mephisto) CouncilMemberFilter() data.MonsterFilter {

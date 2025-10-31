@@ -94,12 +94,13 @@ func (tz TerrorZone) Run() error {
 			if slices.Contains(availableTzs, tzArea) {
 				action.ClearCurrentLevel(tz.ctx.CharacterCfg.Game.TerrorZone.OpenChests, tz.customTZEnemyFilter())
 			} else {
-				tz.ctx.Logger.Debug("Skipping area %v", tzArea.Area().Name)
+				tz.ctx.Logger.Debug("Skipping area", "area", tzArea.Area().Name)
 			}
 		}
 	}
 
-	return nil
+	// Display items with ALT if configured
+	return action.DisplayItemsWithAlt()
 }
 
 func (tz TerrorZone) AvailableTZs() []area.ID {

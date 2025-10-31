@@ -119,3 +119,20 @@ func VectorToPosition(v Vector) data.Position {
 	p.Y = int(math.Round(v.Y))
 	return p
 }
+
+// AtDistance calculates a position a certain distance away from a target along the line between start and end.
+func AtDistance(start, end data.Position, distance int) data.Position {
+	dx := float64(end.X - start.X)
+	dy := float64(end.Y - start.Y)
+	dist := math.Sqrt(dx*dx + dy*dy)
+
+	if dist == 0 {
+		return start
+	}
+
+	ratio := float64(distance) / dist
+	newX := float64(start.X) + dx*ratio
+	newY := float64(start.Y) + dy*ratio
+
+	return data.Position{X: int(newX), Y: int(newY)}
+}

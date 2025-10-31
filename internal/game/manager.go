@@ -228,13 +228,14 @@ func StartGame(username string, password string, authmethod string, authToken st
 	// Depending on the authentication method set base arguments
 	var baseArgs []string
 
-	if authmethod == "TokenAuth" {
+	switch authmethod {
+	case "TokenAuth":
 		baseArgs = []string{"-uid", "osi"}
-	} else if authmethod == "UsernamePassword" {
+	case "UsernamePassword":
 		baseArgs = []string{"-username", username, "-password", password, "-address", realm}
-	} else if authmethod == "None" {
+	case "None":
 		baseArgs = []string{}
-	} else {
+	default:
 		// Default to no auth method
 		baseArgs = []string{}
 	}

@@ -26,7 +26,7 @@ func HealAtNPC() error {
 	if shouldHeal {
 		err := InteractNPC(town.GetTownByArea(ctx.Data.PlayerUnit.Area).HealNPC())
 		if err != nil {
-			ctx.Logger.Warn("Failed to heal on NPC: %v", err)
+			ctx.Logger.Warn("Failed to heal on NPC", "error", err)
 		}
 	}
 

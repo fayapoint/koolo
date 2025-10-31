@@ -50,7 +50,7 @@ func (a Leveling) act3() error {
 
 		a.ctx.Logger.Info("Low on gold. Initiating Lower Kurast Chests gold farm.")
 		if err := NewLowerKurastChest().Run(); err != nil {
-			a.ctx.Logger.Error("Error during Lower Kurast Chests gold farm: %v", err)
+			a.ctx.Logger.Error("Error during Lower Kurast Chests gold farm", "error", err)
 			return err
 		}
 		a.ctx.Logger.Info("Lower Kurast Chests gold farming completed. Quitting current run to re-evaluate in next game.")

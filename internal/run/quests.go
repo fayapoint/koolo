@@ -96,7 +96,7 @@ func (a Quests) clearDenQuest() error {
 
 	a.ctx.CharacterCfg.Character.ClearPathDist = 20
 	if err := config.SaveSupervisorConfig(a.ctx.CharacterCfg.ConfigFolderName, a.ctx.CharacterCfg); err != nil {
-		a.ctx.Logger.Error("Failed to save character configuration: %s", err.Error())
+		a.ctx.Logger.Error("Failed to save character configuration", "error", err.Error())
 	}
 
 	if err := action.ClearCurrentLevel(false, data.MonsterAnyFilter()); err != nil {
@@ -134,7 +134,7 @@ func (a Quests) rescueCainQuest() error {
 
 	a.ctx.CharacterCfg.Character.ClearPathDist = 20
 	if err := config.SaveSupervisorConfig(a.ctx.CharacterCfg.ConfigFolderName, a.ctx.CharacterCfg); err != nil {
-		a.ctx.Logger.Error("Failed to save character configuration: %s", err.Error())
+		a.ctx.Logger.Error("Failed to save character configuration", "error", err.Error())
 	}
 
 	err = action.WayPoint(area.DarkWood)
@@ -144,7 +144,7 @@ func (a Quests) rescueCainQuest() error {
 
 	a.ctx.CharacterCfg.Character.ClearPathDist = 30
 	if err := config.SaveSupervisorConfig(a.ctx.CharacterCfg.ConfigFolderName, a.ctx.CharacterCfg); err != nil {
-		a.ctx.Logger.Error("Failed to save character configuration: %s", err.Error())
+		a.ctx.Logger.Error("Failed to save character configuration", "error", err.Error())
 	}
 
 	// Find the Inifuss Tree position.
@@ -173,7 +173,7 @@ func (a Quests) rescueCainQuest() error {
 		a.ctx.Logger.Info(fmt.Sprintf("Moving to position %d units away from the Inifuss Tree to clear the area.", distance))
 
 		// Calculate the new position based on the current distance.
-		safePos := atDistance(inifussTreePos, playerPos, distance)
+		safePos := utils.AtDistance(inifussTreePos, playerPos, distance)
 
 		// Move to the calculated position.
 		err = action.MoveToCoords(safePos)
@@ -244,7 +244,7 @@ PickupLoop:
 			a.ctx.Logger.Info(fmt.Sprintf("%s found on the ground at position %v. Attempting pickup (Attempt %d)...", scrollInifussName, scrollObj.Position, i+1))
 
 			playerPos := a.ctx.Data.PlayerUnit.Position
-			safeAwayPos := atDistance(scrollObj.Position, playerPos, -5)
+			safeAwayPos := utils.AtDistance(scrollObj.Position, playerPos, -5)
 
 			pickupAttempts := 0
 			for pickupAttempts < 8 {
@@ -257,7 +257,7 @@ PickupLoop:
 
 				moveErr := action.MoveToCoords(scrollObj.Position)
 				if moveErr != nil {
-					a.ctx.Logger.Error(fmt.Sprintf("Failed to move to scroll position: %v", moveErr))
+					a.ctx.Logger.Error("Failed to move to scroll position", "error", moveErr)
 					utils.Sleep(500)
 					pickupAttempts++
 					continue

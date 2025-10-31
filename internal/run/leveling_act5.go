@@ -53,7 +53,7 @@ func (a Leveling) act5() error {
 
 			a.ctx.Logger.Info("Low on gold. Initiating gold farm.")
 			if err := NewEldritch().Run(); err != nil {
-				a.ctx.Logger.Error("Error during gold farm: %v", err)
+				a.ctx.Logger.Error("Error during gold farm", "error", err)
 				return err // Propagate error if farming fails
 			}
 			NewQuests().killShenkQuest()

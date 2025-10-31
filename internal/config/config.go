@@ -77,6 +77,29 @@ type TimeRange struct {
 	End   time.Time `yaml:"end"`
 }
 
+// ShrineSettings contains configuration for intelligent shrine interaction
+type ShrineSettings struct {
+	// Individual shrine type controls
+	ExperienceShrine      bool `yaml:"experienceShrine"`
+	StaminaShrine         bool `yaml:"staminaShrine"`
+	ManaRegenShrine       bool `yaml:"manaRegenShrine"`
+	SkillShrine           bool `yaml:"skillShrine"`
+	RefillShrine          bool `yaml:"refillShrine"`
+	HealthShrine          bool `yaml:"healthShrine"`
+	ManaShrine            bool `yaml:"manaShrine"`
+	ArmorShrine           bool `yaml:"armorShrine"`
+	CombatShrine          bool `yaml:"combatShrine"`
+	ResistLightningShrine bool `yaml:"resistLightningShrine"`
+	ResistFireShrine      bool `yaml:"resistFireShrine"`
+	ResistColdShrine      bool `yaml:"resistColdShrine"`
+	ResistPoisonShrine    bool `yaml:"resistPoisonShrine"`
+	
+	// Intelligent buff management
+	MinDelayBetweenShrines int  `yaml:"minDelayBetweenShrines"` // Seconds between shrine interactions
+	PreventBuffOverwrite   bool `yaml:"preventBuffOverwrite"`   // Don't take a shrine if it would overwrite a better buff
+	AlwaysBreakCurses      bool `yaml:"alwaysBreakCurses"`      // Always take shrines to break curses, regardless of buff
+}
+
 type CharacterCfg struct {
 	MaxGameLength        int    `yaml:"maxGameLength"`
 	Username             string `yaml:"username"`
@@ -146,11 +169,20 @@ type CharacterCfg struct {
 			BossStaticThreshold int `yaml:"boss_static_threshold"`
 		} `yaml:"nova_sorceress"`
 		MosaicSin struct {
-			UseTigerStrike    bool `yaml:"useTigerStrike"`
-			UseCobraStrike    bool `yaml:"useCobraStrike"`
-			UseClawsOfThunder bool `yaml:"useClawsOfThunder"`
-			UseBladesOfIce    bool `yaml:"useBladesOfIce"`
-			UseFistsOfFire    bool `yaml:"useFistsOfFire"`
+			UseTigerStrike         bool `yaml:"useTigerStrike"`
+			UseCobraStrike         bool `yaml:"useCobraStrike"`
+			UseClawsOfThunder      bool `yaml:"useClawsOfThunder"`
+			UseBladesOfIce         bool `yaml:"useBladesOfIce"`
+			UseFistsOfFire         bool `yaml:"useFistsOfFire"`
+			UseDragonFlight        bool `yaml:"useDragonFlight"`        // Use Dragon Flight to teleport to monsters
+			UseDragonTalon         bool `yaml:"useDragonTalon"`         // Use Dragon Talon as finisher when in melee range
+			UseMindBlast           bool `yaml:"useMindBlast"`           // Use Mind Blast to stun/convert enemies for charge refresh
+			UseChargeBattery       bool `yaml:"useChargeBattery"`       // Convert minion before Diablo/Baal to maintain charges
+			PhoenixChargeCount     int  `yaml:"phoenixChargeCount"`     // 1=Chaos Ice Bolt, 2=Chaos Lightning, 3=Meteor
+			AggressiveMode         bool `yaml:"aggressiveMode"`         // Attack immediately without waiting for merc/shadow
+			TwoPassDiabloRun       bool `yaml:"twoPassDiabloRun"`       // Kill everything first, then backtrack to loot (preserves charges)
+			ChargeRefreshTime      int  `yaml:"chargeRefreshTime"`      // How many seconds before charge expiration to use Mind Blast (default 12)
+			ChargeBatteryDuration  int  `yaml:"chargeBatteryDuration"`  // How long to maintain charges using converted minion before boss (default 30s)
 		} `yaml:"mosaic_sin"`
 	} `yaml:"character"`
 
@@ -158,10 +190,12 @@ type CharacterCfg struct {
 		MinGoldPickupThreshold int                   `yaml:"minGoldPickupThreshold"`
 		UseCainIdentify        bool                  `yaml:"useCainIdentify"`
 		InteractWithShrines    bool                  `yaml:"interactWithShrines"`
+		ShrineSettings         ShrineSettings        `yaml:"shrineSettings"`
 		InteractWithChests     bool                  `yaml:"interactWithChests"`
 		StopLevelingAt         int                   `yaml:"stopLevelingAt"`
 		IsNonLadderChar        bool                  `yaml:"isNonLadderChar"`
 		ClearTPArea            bool                  `yaml:"clearTPArea"`
+		AltDisplayTime         int                   `yaml:"altDisplayTime"` // Time in seconds to hold ALT after each run
 		Difficulty             difficulty.Difficulty `yaml:"difficulty"`
 		RandomizeRuns          bool                  `yaml:"randomizeRuns"`
 		Runs                   []Run                 `yaml:"runs"`
@@ -181,7 +215,15 @@ type CharacterCfg struct {
 			OnlyClearLevel2       bool `yaml:"onlyClearLevel2"`
 		} `yaml:"pit"`
 		Countess struct {
-			ClearFloors bool `yaml:"clearFloors"`
+			ClearFloors           bool `yaml:"clearFloors"`
+			ClearForgottenTower   bool `yaml:"clearForgottenTower"`
+			ClearTowerCellar1     bool `yaml:"clearTowerCellar1"`
+			ClearTowerCellar2     bool `yaml:"clearTowerCellar2"`
+			ClearTowerCellar3     bool `yaml:"clearTowerCellar3"`
+			ClearTowerCellar4     bool `yaml:"clearTowerCellar4"`
+			ClearTowerCellar5     bool `yaml:"clearTowerCellar5"`
+			ClearOnlyPath         bool `yaml:"clearOnlyPath"`
+			FocusOnElitePacks     bool `yaml:"focusOnElitePacks"`
 		}
 		Andariel struct {
 			ClearRoom   bool `yaml:"clearRoom"`

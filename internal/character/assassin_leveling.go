@@ -298,7 +298,7 @@ func (s AssassinLeveling) SkillPoints() []skill.ID {
 }
 
 func (s AssassinLeveling) killBoss(bossNPC npc.ID, timeout time.Duration) error {
-	s.Logger.Info(fmt.Sprintf("Starting kill sequence for %s...", bossNPC))
+	s.Logger.Info(fmt.Sprintf("Starting kill sequence for %d...", bossNPC))
 	startTime := time.Now()
 	lastTrapVolley := time.Time{}
 
@@ -311,12 +311,12 @@ func (s AssassinLeveling) killBoss(bossNPC npc.ID, timeout time.Duration) error 
 			continue
 		}
 
-		s.Logger.Info(fmt.Sprintf("%s has been found! Engaging...", bossNPC))
+		s.Logger.Info(fmt.Sprintf("%d has been found! Engaging...", bossNPC))
 		lvl, _ := s.Data.PlayerUnit.FindStat(stat.Level, 0)
 
 		for boss.Stats[stat.Life] > 0 {
 			if time.Since(startTime) > timeout {
-				return fmt.Errorf("%s timeout", bossNPC)
+				return fmt.Errorf("%d timeout", bossNPC)
 			}
 
 			boss, found = s.Data.Monsters.FindOne(bossNPC, data.MonsterTypeUnique)
@@ -345,7 +345,7 @@ func (s AssassinLeveling) killBoss(bossNPC npc.ID, timeout time.Duration) error 
 
 		// After the inner loop, check if boss is dead and return if so
 		if boss.Stats[stat.Life] <= 0 {
-			s.Logger.Info(fmt.Sprintf("%s has been defeated.", bossNPC))
+			s.Logger.Info(fmt.Sprintf("%d has been defeated.", bossNPC))
 			if bossNPC == npc.BaalCrab {
 				s.Logger.Info("Waiting...")
 				time.Sleep(time.Second * 1)
@@ -354,21 +354,21 @@ func (s AssassinLeveling) killBoss(bossNPC npc.ID, timeout time.Duration) error 
 		}
 	}
 
-	s.Logger.Error(fmt.Sprintf("Timed out waiting for %s.", bossNPC))
-	return fmt.Errorf("%s timeout", bossNPC)
+	s.Logger.Error(fmt.Sprintf("Timed out waiting for %d.", bossNPC))
+	return fmt.Errorf("%d timeout", bossNPC)
 }
 func (s AssassinLeveling) killMonsterByName(id npc.ID, monsterType data.MonsterType, skipOnImmunities []stat.Resist) error {
-	s.Logger.Info(fmt.Sprintf("Starting persistent kill sequence for %s...", id))
+	s.Logger.Info(fmt.Sprintf("Starting persistent kill sequence for %d...", id))
 
 	for {
 		monster, found := s.Data.Monsters.FindOne(id, monsterType)
 		if !found {
-			s.Logger.Info(fmt.Sprintf("%s not found, assuming dead.", id))
+			s.Logger.Info(fmt.Sprintf("%d not found, assuming dead.", id))
 			return nil
 		}
 
 		if monster.Stats[stat.Life] <= 0 {
-			s.Logger.Info(fmt.Sprintf("%s is dead.", id))
+			s.Logger.Info(fmt.Sprintf("%d is dead.", id))
 			return nil
 		}
 
@@ -381,7 +381,7 @@ func (s AssassinLeveling) killMonsterByName(id npc.ID, monsterType data.MonsterT
 		}, skipOnImmunities)
 
 		if err != nil {
-			s.Logger.Warn(fmt.Sprintf("Error during KillMonsterSequence for %s: %v", id, err))
+			s.Logger.Warn(fmt.Sprintf("Error during KillMonsterSequence for %d: %v", id, err))
 		}
 
 		time.Sleep(time.Millisecond * 250)

@@ -14,6 +14,8 @@ import (
 )
 
 // interactableShrines is a list of shrine types that the bot should interact with.
+// NOTE: This variable is used by the shrine interaction system and should NOT be removed
+// even if static analysis marks it as unused. It's part of the shrine feature infrastructure.
 var interactableShrines = []object.ShrineType{
 	object.ExperienceShrine,
 	object.StaminaShrine,
@@ -38,7 +40,7 @@ func ClearCurrentLevel(openChests bool, filter data.MonsterFilter) error {
 		// First, clear the room of monsters
 		err := clearRoom(r, filter)
 		if err != nil {
-			ctx.Logger.Warn("Failed to clear room: %v", err)
+			ctx.Logger.Warn("Failed to clear room", "error", err)
 		}
 
 		//ctx.Logger.Debug(fmt.Sprintf("Clearing room complete, attempting to pickup items in a radius of %d", pickupRadius))

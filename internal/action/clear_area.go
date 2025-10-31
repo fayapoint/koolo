@@ -41,11 +41,18 @@ func ClearAreaAroundPosition(pos data.Position, radius int, filter data.MonsterF
 	ctx := context.Get()
 	ctx.SetLastAction("ClearAreaAroundPosition")
 
-	// Disable item pickup at the beginning of the function
+	// Remember the original item pickup state so we can restore it
+	originalPickupState := ctx.CurrentGame.PickupItems
+	
+	// Disable item pickup during combat to prevent charge loss
 	ctx.DisableItemPickup()
 
-	// Defer the re-enabling of item pickup to ensure it happens regardless of how the function exits
-	defer ctx.EnableItemPickup()
+	// Restore the original pickup state when done (don't force-enable if it was disabled)
+	defer func() {
+		if originalPickupState {
+			ctx.EnableItemPickup()
+		}
+	}()
 
 	return ctx.Char.KillMonsterSequence(func(d game.Data) (data.UnitID, bool) {
 		enemies := d.Monsters.Enemies(filter)

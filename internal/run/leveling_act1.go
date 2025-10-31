@@ -2,7 +2,6 @@ package run
 
 import (
 	"fmt"
-	"math"
 
 	"github.com/hectorgimenez/d2go/pkg/data"
 	"github.com/hectorgimenez/d2go/pkg/data/area"
@@ -289,7 +288,8 @@ func (a Leveling) AdjustDifficultyConfig() {
 		}
 	}
 	if lvl.Value >= 24 {
-		if a.ctx.CharacterCfg.Game.Difficulty == difficulty.Normal {
+		switch a.ctx.CharacterCfg.Game.Difficulty {
+		case difficulty.Normal:
 			a.ctx.CharacterCfg.Inventory.BeltColumns = [4]string{"healing", "healing", "mana", "mana"}
 			a.ctx.CharacterCfg.Health.MercHealingPotionAt = 55
 			a.ctx.CharacterCfg.Health.MercRejuvPotionAt = 0
@@ -298,7 +298,7 @@ func (a Leveling) AdjustDifficultyConfig() {
 			a.ctx.CharacterCfg.Health.TownChickenAt = 50
 			a.ctx.CharacterCfg.Character.ClearPathDist = 15
 
-		} else if a.ctx.CharacterCfg.Game.Difficulty == difficulty.Nightmare {
+		case difficulty.Nightmare:
 			a.ctx.CharacterCfg.Inventory.BeltColumns = [4]string{"healing", "healing", "mana", "mana"}
 			a.ctx.CharacterCfg.Health.MercHealingPotionAt = 55
 			a.ctx.CharacterCfg.Health.MercRejuvPotionAt = 0
@@ -307,7 +307,7 @@ func (a Leveling) AdjustDifficultyConfig() {
 			a.ctx.CharacterCfg.Health.TownChickenAt = 50
 			a.ctx.CharacterCfg.Character.ClearPathDist = 15
 
-		} else if a.ctx.CharacterCfg.Game.Difficulty == difficulty.Hell {
+		case difficulty.Hell:
 			a.ctx.CharacterCfg.Inventory.BeltColumns = [4]string{"healing", "healing", "mana", "rejuvenation"}
 			a.ctx.CharacterCfg.Health.MercHealingPotionAt = 80
 			a.ctx.CharacterCfg.Health.MercRejuvPotionAt = 40
@@ -320,17 +320,15 @@ func (a Leveling) AdjustDifficultyConfig() {
 			} else {
 				a.ctx.CharacterCfg.Character.ClearPathDist = 15
 			}
-
 		}
-		if err := config.SaveSupervisorConfig(a.ctx.CharacterCfg.ConfigFolderName, a.ctx.CharacterCfg); err != nil {
-			a.ctx.Logger.Error(fmt.Sprintf("Failed to save character configuration: %s", err.Error()))
-		}
+	}
+	if err := config.SaveSupervisorConfig(a.ctx.CharacterCfg.ConfigFolderName, a.ctx.CharacterCfg); err != nil {
+		a.ctx.Logger.Error(fmt.Sprintf("Failed to save character configuration: %s", err.Error()))
 	}
 }
 
 func (a Leveling) GetRunewords() []string {
 	enabledRunewordRecipes := []string{"Ancients' Pledge", "Lore", "Insight", "Smoke", "Treachery", "Call to Arms"}
-
 	if !a.ctx.CharacterCfg.Game.IsNonLadderChar {
 		enabledRunewordRecipes = append(enabledRunewordRecipes, "Bulwark", "Hustle")
 		a.ctx.Logger.Info("Ladder character detected. Adding Bulwark and Hustle runewords.")
@@ -504,23 +502,6 @@ func gambleAct1Belt(ctx *context.Status) error {
 		}
 		utils.Sleep(500)
 	}
-}
-
-// atDistance is a helper function to calculate a position a certain distance away from a target.
-func atDistance(start, end data.Position, distance int) data.Position {
-	dx := float64(end.X - start.X)
-	dy := float64(end.Y - start.Y)
-	dist := math.Sqrt(dx*dx + dy*dy)
-
-	if dist == 0 {
-		return start
-	}
-
-	ratio := float64(distance) / dist
-	newX := float64(start.X) + dx*ratio
-	newY := float64(start.Y) + dy*ratio
-
-	return data.Position{X: int(newX), Y: int(newY)}
 }
 
 // shouldFarmCountessForRunes checks if the character should farm Countess for runes in Nightmare difficulty.

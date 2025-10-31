@@ -20,7 +20,8 @@ var diabloFightPosition = data.Position{X: 7788, Y: 5292}
 var chaosNavToPosition = data.Position{X: 7732, Y: 5292} //into path towards vizier
 
 type Diablo struct {
-	ctx *context.Status
+	ctx           *context.Status
+	killPositions []data.Position // Track positions where monsters were killed for backtracking
 }
 
 func NewDiablo() *Diablo {
@@ -34,6 +35,16 @@ func (d *Diablo) Name() string {
 }
 
 func (d *Diablo) Run() error {
+	// Check if Mosaic with two-pass mode enabled
+	isMosaicTwoPass := d.ctx.CharacterCfg.Character.Class == "mosaic" && d.ctx.CharacterCfg.Character.MosaicSin.TwoPassDiabloRun
+	
+	// For two-pass mode, disable item pickup at the start and initialize kill positions
+	if isMosaicTwoPass {
+		d.ctx.DisableItemPickup()
+		d.killPositions = make([]data.Position, 0, 50) // Pre-allocate for efficiency
+		d.ctx.Logger.Info("Two-pass Diablo mode: Item pickup disabled, will backtrack after clearing")
+	}
+	
 	// Just to be sure we always re-enable item pickup after the run
 	defer func() {
 		d.ctx.EnableItemPickup()
@@ -99,7 +110,7 @@ func (d *Diablo) Run() error {
 
 	// Thanks Go for the lack of ordered maps
 	for _, bossName := range []string{"Vizier", "Lord De Seis", "Infector"} {
-		d.ctx.Logger.Debug("Heading to", bossName)
+		d.ctx.Logger.Debug("Heading to", "boss", bossName)
 
 		for _, sealID := range sealGroups[bossName] {
 			seal, found := d.ctx.Data.Objects.FindOne(sealID)
@@ -166,9 +177,20 @@ func (d *Diablo) Run() error {
 		// Skip Infector boss because was already killed
 		if bossName != "Infector" {
 			// Wait for the boss to spawn and kill it.
-			// Lord De Seis sometimes it's far, and we can not detect him, but we will kill him anyway heading to the next seal
-			if err := d.killSealElite(bossName); err != nil && bossName != "Lord De Seis" {
-				return err
+			// Lord De Seis sometimes spawns far away, so we handle him specially
+			if bossName == "Lord De Seis" {
+				// For Lord De Seis, clear a wider area and be more aggressive in searching
+				err := d.killSealElite(bossName)
+				if err != nil {
+					d.ctx.Logger.Warn("Could not immediately find Lord De Seis, clearing wider area")
+					// Clear larger area around the seal to ensure we find him
+					action.ClearAreaAroundPlayer(50, d.ctx.Data.MonsterFilterAnyReachable())
+				}
+			} else {
+				// For Vizier, we must kill him or error
+				if err := d.killSealElite(bossName); err != nil {
+					return err
+				}
 			}
 		}
 
@@ -199,8 +221,36 @@ func (d *Diablo) Run() error {
 			d.ctx.DisableItemPickup()
 		}
 
-		return d.ctx.Char.KillDiablo()
+		if err := d.ctx.Char.KillDiablo(); err != nil {
+			return err
+		}
+		
+		// For two-pass mode, add Diablo position and backtrack to collect loot
+		if isMosaicTwoPass {
+			d.killPositions = append(d.killPositions, d.ctx.Data.PlayerUnit.Position)
+			d.ctx.Logger.Info("Diablo killed, enabling item pickup and backtracking")
+			d.ctx.EnableItemPickup()
+			
+			// Backtrack through all kill positions in reverse order
+			for i := len(d.killPositions) - 1; i >= 0; i-- {
+				pos := d.killPositions[i]
+				if err := action.MoveToCoords(pos); err != nil {
+					d.ctx.Logger.Warn(fmt.Sprintf("Failed to backtrack to position X:%d Y:%d: %v", pos.X, pos.Y, err))
+					continue
+				}
+				// Small delay to let items appear and get picked up
+				utils.Sleep(300)
+			}
+			
+			d.ctx.Logger.Info("Backtracking complete, returning to town")
+			// Return to town to sell/stash the collected loot
+			if err := action.InRunReturnTownRoutine(); err != nil {
+				return err
+			}
+		}
 
+		// Display items with ALT if configured
+		return action.DisplayItemsWithAlt()
 	}
 
 	return nil
@@ -222,6 +272,11 @@ func (d *Diablo) killSealElite(boss string) error {
 		for _, m := range d.ctx.Data.Monsters.Enemies(d.ctx.Data.MonsterFilterAnyReachable()) {
 			if action.IsMonsterSealElite(m) {
 				d.ctx.Logger.Debug(fmt.Sprintf("Seal elite found: %v at position X: %d, Y: %d", m.Name, m.Position.X, m.Position.Y))
+				
+				// Record position for two-pass backtracking
+				if len(d.killPositions) >= 0 { // If killPositions initialized (two-pass mode)
+					d.killPositions = append(d.killPositions, m.Position)
+				}
 
 				var clearRadius int
 				if d.ctx.Data.CanTeleport() {
@@ -268,25 +323,4 @@ func (d *Diablo) killSealElite(boss string) error {
 	}
 
 	return fmt.Errorf("no seal elite found for %s within %v seconds", boss, timeout.Seconds())
-}
-
-func (d *Diablo) getMonsterFilter() data.MonsterFilter {
-	return func(monsters data.Monsters) (filteredMonsters []data.Monster) {
-		for _, m := range monsters {
-			if !d.ctx.Data.AreaData.IsWalkable(m.Position) {
-				continue
-			}
-
-			// If FocusOnElitePacks is enabled, only return elite monsters and seal bosses
-			if d.ctx.CharacterCfg.Game.Diablo.FocusOnElitePacks {
-				if m.IsElite() || action.IsMonsterSealElite(m) {
-					filteredMonsters = append(filteredMonsters, m)
-				}
-			} else {
-				filteredMonsters = append(filteredMonsters, m)
-			}
-		}
-
-		return filteredMonsters
-	}
 }

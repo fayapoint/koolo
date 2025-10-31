@@ -51,7 +51,7 @@ func (e Eldritch) Run() error {
 		}
 
 		// Kill Shenk
-		return e.ctx.Char.KillMonsterSequence(func(d game.Data) (data.UnitID, bool) {
+		err := e.ctx.Char.KillMonsterSequence(func(d game.Data) (data.UnitID, bool) {
 			if m, found := d.Monsters.FindOne(npc.OverSeer, data.MonsterTypeSuperUnique); found {
 				if m.Stats[stat.Life] > 0 {
 					return m.UnitID, true
@@ -61,7 +61,12 @@ func (e Eldritch) Run() error {
 
 			return 0, false
 		}, nil)
+		
+		if err != nil {
+			return err
+		}
 	}
 
-	return nil
+	// Display items with ALT if configured
+	return action.DisplayItemsWithAlt()
 }
