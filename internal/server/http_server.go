@@ -1200,6 +1200,7 @@ func (s *HttpServer) characterSettings(w http.ResponseWriter, r *http.Request) {
 			cfg.Character.MosaicSin.UseDragonTalon = r.Form.Has("mosaicUseDragonTalon")
 			cfg.Character.MosaicSin.UseMindBlast = r.Form.Has("mosaicUseMindBlast")
 			cfg.Character.MosaicSin.UseChargeBattery = r.Form.Has("mosaicUseChargeBattery")
+			cfg.Character.MosaicSin.NeverTownDuringBosses = r.Form.Has("mosaicNeverTownDuringBosses")
 			cfg.Character.MosaicSin.AggressiveMode = r.Form.Has("mosaicAggressiveMode")
 			cfg.Character.MosaicSin.TwoPassDiabloRun = r.Form.Has("mosaicTwoPassDiabloRun")
 			if phoenixCharges := r.Form.Get("mosaicPhoenixChargeCount"); phoenixCharges != "" {

@@ -178,6 +178,7 @@ type CharacterCfg struct {
 			UseDragonTalon         bool `yaml:"useDragonTalon"`         // Use Dragon Talon as finisher when in melee range
 			UseMindBlast           bool `yaml:"useMindBlast"`           // Use Mind Blast to stun/convert enemies for charge refresh
 			UseChargeBattery       bool `yaml:"useChargeBattery"`       // Convert minion before Diablo/Baal to maintain charges
+			NeverTownDuringBosses  bool `yaml:"neverTownDuringBosses"`  // Never go to town for potions/merc during boss fights (preserves charges)
 			PhoenixChargeCount     int  `yaml:"phoenixChargeCount"`     // 1=Chaos Ice Bolt, 2=Chaos Lightning, 3=Meteor
 			AggressiveMode         bool `yaml:"aggressiveMode"`         // Attack immediately without waiting for merc/shadow
 			TwoPassDiabloRun       bool `yaml:"twoPassDiabloRun"`       // Kill everything first, then backtrack to loot (preserves charges)

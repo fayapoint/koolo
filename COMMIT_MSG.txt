@@ -1,0 +1,28 @@
+feat: Major Mosaic Assassin improvements
+
+## Features Added
+- Persistent Baal kill sequence (pursues when he teleports)
+- Extended Dragon Flight range to 30 (handles distant bosses)
+- Mind Blast charge battery strategy for low-density areas
+- Two-Pass Diablo mode with proper charge preservation
+- Charge management system with automatic refresh
+- DisplayItemsWithAlt() for all runs with completion notifications
+
+## Fixes
+- Fixed Two-Pass Diablo mode pickup issue
+- Fixed Baal fight abandonment at distance >30
+- Fixed charge loss during item pickup
+- Fixed ClearAreaAroundPosition respecting pickup state
+
+## UI/Config
+- Added UseChargeBattery checkbox
+- Added ChargeBatteryDuration dropdown (20-50s)
+- Added run completion notifications
+- Improved character settings layout
+
+## Runs Updated
+- Diablo: Two-Pass mode fixed
+- Baal: Persistent pursuit system
+- The Pit: Charge battery support
+- Terror Zone: DisplayItemsWithAlt
+- Eldritch: DisplayItemsWithAlt

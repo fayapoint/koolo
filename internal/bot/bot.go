@@ -9,7 +9,9 @@ import (
 	"time"
 
 	"github.com/hectorgimenez/d2go/pkg/data"
+	"github.com/hectorgimenez/d2go/pkg/data/area"
 	"github.com/hectorgimenez/d2go/pkg/data/item"
+	"github.com/hectorgimenez/d2go/pkg/data/skill"
 	"github.com/hectorgimenez/d2go/pkg/data/stat"
 	"github.com/hectorgimenez/koolo/internal/action"
 	botCtx "github.com/hectorgimenez/koolo/internal/context"
@@ -18,7 +20,6 @@ import (
 	"github.com/hectorgimenez/koolo/internal/run"
 	"github.com/hectorgimenez/koolo/internal/utils"
 
-	"github.com/hectorgimenez/d2go/pkg/data/skill"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -305,6 +306,12 @@ func (b *Bot) Run(ctx context.Context, firstRun bool, runs []run.Run) error {
 
 				townChicken := b.ctx.CharacterCfg.Health.TownChickenAt > 0 && b.ctx.Data.PlayerUnit.HPPercent() <= b.ctx.CharacterCfg.Health.TownChickenAt
 
+				// Check if Mosaic should skip town during boss fights
+				isMosaicNeverTown := b.ctx.CharacterCfg.Character.Class == "mosaic" && b.ctx.CharacterCfg.Character.MosaicSin.NeverTownDuringBosses
+				isInBossFight := b.ctx.Data.PlayerUnit.Area == area.TheWorldstoneChamber || 
+								 b.ctx.Data.PlayerUnit.Area == area.ThroneOfDestruction ||
+								 b.ctx.Data.PlayerUnit.Area == area.ChaosSanctuary
+
 				// Check if we need to go back to town (level, gold, and TP quantity are met, AND then other conditions)
 				if _, found := b.ctx.Data.KeyBindings.KeyBindingForSkill(skill.TomeOfTownPortal); found {
 
@@ -326,6 +333,13 @@ func (b *Bot) Run(ctx context.Context, firstRun bool, runs []run.Run) error {
 									b.ctx.CharacterCfg.Character.UseMerc &&
 									b.ctx.Data.PlayerUnit.TotalPlayerGold() > 100000) &&
 								!b.ctx.Data.PlayerUnit.Area.IsTown() {
+
+								// Skip town trip if Mosaic NeverTownDuringBosses is enabled and we're in a boss area
+								if isMosaicNeverTown && isInBossFight {
+									b.ctx.Logger.Info("⚔️ Mosaic NeverTownDuringBosses: Skipping town trip to preserve charges during boss fight")
+									// Continue fighting with current resources
+									continue
+								}
 
 								// Log the exact reason for going back to town
 								var reason string

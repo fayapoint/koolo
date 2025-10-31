@@ -154,6 +154,10 @@
                             🔋 Use Charge Battery Strategy (Requires Mind Blast)
                         </label>
                         <label>
+                            <input type="checkbox" name="mosaicNeverTownDuringBosses" {{ if .Config.Character.MosaicSin.NeverTownDuringBosses }}checked{{ end }}/>
+                            ⚔️ Never Town During Boss Fights (Preserves Charges)
+                        </label>
+                        <label>
                             <input type="checkbox" name="mosaicAggressiveMode" {{ if .Config.Character.MosaicSin.AggressiveMode }}checked{{ end }}/>
                             Aggressive Mode (Don't wait for merc/shadow)
                         </label>
